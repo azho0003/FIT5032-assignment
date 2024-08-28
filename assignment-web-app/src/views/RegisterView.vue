@@ -21,6 +21,16 @@
             </div>
 
             <div class="col-md-6 col-sm-6">
+              <label for="gender" class="form-label">Gender</label>
+              <select class="form-select" id="gender" v-model="formData.gender" required>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+                <option value="other">Other</option>
+              </select>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6 col-sm-6">
               <label for="password" class="form-label">Password</label>
               <input 
                 type="password"
@@ -32,32 +42,34 @@
               />
               <div v-if="errors.password" class="text-danger">{{ errors.password }}</div>
             </div>
+            
+            <div class="col-md-6 col-sm-6">
+              <label for="confirm-password" class="form-label">Confirm Password</label>
+              <input 
+                type="password"
+                class="form-control"
+                id="confirm-password"
+                @blur="() => validateConfirmPassword(true)"
+                v-model="formData.confirmPassword"
+              />
+              <div v-if="errors.confirmPassword" class="text-danger">{{ errors.confirmPassword }}</div>
+            </div>
           </div>
 
-          <div class="row mb-3">
-            <div class="col-md-6 col-sm-6">
-              <label for="gender" class="form-label">Gender</label>
-              <select class="form-select" id="gender" v-model="formData.gender" required>
-                <option value="male">Male</option>
-                <option value="female">Female</option>
-                <option value="other">Other</option>
-              </select>
-            </div>
+          <div class="col-md">
+            <label for="staffCode" class="form-label">Staff Code (optional)</label>
+            <input
+              type="text"
+              class="form-control"
+              id="staffCode"
+              v-model="formData.staffCode"
+            />
+          </div>
 
-            <div class="col-md-6 col-sm-6">
-              <label for="staffCode" class="form-label">Staff Code (optional)</label>
-              <input
-                type="text"
-                class="form-control"
-                id="staffCode"
-                v-model="formData.staffCode"
-              />
-            </div>
-
-            <div class="text-center pt-3">
-              <button type="submit" class="btn btn-primary me-2">Submit</button>
-              <button type="button" class="btn btn-secondary" @click="clearForm">Clear</button>
-            </div>
+          <div class="text-center pt-3">
+            <button type="submit" class="btn btn-primary me-2">Submit</button>
+            <button type="button" class="btn btn-secondary" @click="clearForm">Clear</button>
+          </div>
           </div>
         </form>
       </div>
@@ -82,6 +94,7 @@ import Column from 'primevue/column'
 const formData = ref({
   username: '',
   password: '',
+  confirmPassword: '',
   gender: '',
   staffCode: ''
 })
@@ -101,6 +114,7 @@ const clearForm = () => {
   formData.value = {
     username: '',
     password: '',
+    confirmPassword: '',
     gender: '',
     staffCode: ''
   }
@@ -109,6 +123,7 @@ const clearForm = () => {
 const errors = ref({
   username: null,
   password: null,
+  confirmPassword: null,
   gender: null,
   staffCode: null
 })
@@ -138,6 +153,14 @@ const validatePassword = (blur) => {
     if (blur) errors.value.password = 'Password must contain at least one number.'
   } else {
     errors.value.password = null
+  }
+}
+
+const validateConfirmPassword = (blur) => {
+  if (formData.value.password !== formData.value.confirmPassword) {
+    if (blur) errors.value.confirmPassword = 'Password does not match.'
+  } else {
+    errors.value.confirmPassword = null
   }
 }
 </script>
