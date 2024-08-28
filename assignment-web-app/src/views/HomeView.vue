@@ -1,11 +1,18 @@
 <template>
-    <div class="home">
-      <h1>Home Page</h1>
-      <p>Welcome to our Within Red. Need help?</p>
-    </div>
+  <div class="main-container">
+    <header>
+      <NavigationHeader />
+    </header>
+
+    <main class="main-box">
+      <router-view></router-view>
+    </main>
+  </div>
 </template>
   
 <script setup>
+import NavigationHeader from '../components/NavigationHeader.vue';
+
 </script>
   
 <style>
