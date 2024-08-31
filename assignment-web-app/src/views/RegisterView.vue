@@ -6,7 +6,6 @@
 
         <form @submit.prevent="submitForm">
           <div class="row mb-3">
-
             <div class="col-md-6 col-sm-6">
               <label for="username" class="form-label">Username</label>
               <input 
@@ -27,6 +26,7 @@
                 <option value="female">Female</option>
                 <option value="other">Other</option>
               </select>
+            </div>
           </div>
 
           <div class="row mb-3">
@@ -69,7 +69,6 @@
           <div class="text-center pt-3">
             <button type="submit" class="btn btn-primary me-2">Submit</button>
             <button type="button" class="btn btn-secondary" @click="clearForm">Clear</button>
-          </div>
           </div>
         </form>
       </div>
