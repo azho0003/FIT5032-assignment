@@ -1,6 +1,6 @@
 <template>
-    <div class="home">
-      <h1>Within Red</h1>
+    <div class="ratings">
+      <h1>Give Us a Rating</h1>
     </div>
 </template>
   

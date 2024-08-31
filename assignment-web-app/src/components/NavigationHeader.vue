@@ -5,7 +5,8 @@
           <li class="nav-item"><router-link to="/" class="nav-link" active-class="active" aria-current="page">Home</router-link></li>
           <li class="nav-item"><router-link to="/about" class="nav-link" active-class="active">About</router-link></li>
           <li class="nav-item"><router-link to="/login" class="nav-link" active-class="active">Login</router-link></li>
-          <li class="nav-item"><router-link to="register" class="nav-link" active-class="active">Register</router-link></li>
+          <li class="nav-item"><router-link to="/register" class="nav-link" active-class="active">Register</router-link></li>
+          <li class="nav-item"><router-link to="/ratings" class="nav-link" active-class="active">Ratings</router-link></li>
         </ul>
       </header>
     </div>

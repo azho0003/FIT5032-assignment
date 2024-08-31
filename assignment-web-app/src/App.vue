@@ -1,15 +1,17 @@
 <script setup>
+import NavigationHeader from '../src/components/NavigationHeader.vue';
 </script>
 
 <template>
-  <div class="container">
-    <div class="row">
-      <div class="col-md-12">
-        <div>
-          <router-view></router-view>
-        </div>
-      </div>
-    </div>
+  <div class="main-container">
+    <header>
+      <NavigationHeader />
+    </header>
+  
+
+    <main class="main-box">
+      <router-view></router-view>
+    </main>
   </div>
 </template>
 
