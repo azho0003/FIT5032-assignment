@@ -6,8 +6,10 @@ import router from './router'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
+import Rating from 'primevue/rating'
 
 const app = createApp(App);
 app.use(PrimeVue, { theme: {preset: Aura} })
+app.component('RatingComponent',Rating)
 app.use(router);
 app.mount('#app');
