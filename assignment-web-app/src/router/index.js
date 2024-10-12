@@ -1,9 +1,8 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import AboutView from '../views/AboutView.vue'
-import RegisterView from '../views/RegisterView.vue'
-import LoginView from '../views/LoginView.vue'
-import RatingsView from '../views/RatingsView.vue'
+import FirebaseLoginView from '../views/FirebaseLoginView.vue'
+import FirebaseRegisterView from '../views/FirebaseRegisterView.vue'
 
 const routes = [
   {
@@ -19,17 +18,12 @@ const routes = [
   {
     path: '/register',
     name: 'Register',
-    component: RegisterView
+    component: FirebaseRegisterView
   },
   {
     path: '/login',
     name: 'Login',
-    component: LoginView
-  },
-  {
-    path: '/ratings',
-    name: 'Ratings',
-    component: RatingsView
+    component: FirebaseLoginView
   }
 ]
 
