@@ -11,6 +11,7 @@
             <li class="nav-item"><router-link to="/about" class="nav-link" active-class="active">About</router-link></li>
             <li class="nav-item"><router-link to="/login" class="nav-link" active-class="active">Login</router-link></li>
             <li class="nav-item"><router-link to="/register" class="nav-link" active-class="active">Register</router-link></li>
+            <li class="nav-item"><router-link to="/email" class="nav-link" active-class="active">Email</router-link></li>
           </ul>
         </div>
       </div>
