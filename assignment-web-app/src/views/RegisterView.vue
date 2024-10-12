@@ -1,12 +1,12 @@
 <template>
-  <div class="container-fluid mt-3">
+  <div class="container mt-3">
     <div class="row">
-      <div class="col-md-8 offset-md-2">
+      <div class="col-12 col-md-6 offset-md-3">
         <h1 class="text-center">Register</h1>
 
         <form @submit.prevent="submitForm">
           <div class="row mb-3">
-            <div class="col-md-6 col-sm-6">
+            <div class="col-12 col-md-6">
               <label for="username" class="form-label">Username</label>
               <input 
                 type="text"
@@ -19,7 +19,7 @@
               <div v-if="errors.username" class="text-danger">{{ errors.username }}</div>
             </div>
 
-            <div class="col-md-6 col-sm-6">
+            <div class="col-12 col-md-6">
               <label for="gender" class="form-label">Gender</label>
               <select class="form-select" id="gender" v-model="formData.gender" required>
                 <option value="male">Male</option>
@@ -30,7 +30,7 @@
           </div>
 
           <div class="row mb-3">
-            <div class="col-md-6 col-sm-6">
+            <div class="col-12 col-md-6">
               <label for="password" class="form-label">Password</label>
               <input 
                 type="password"
@@ -43,7 +43,7 @@
               <div v-if="errors.password" class="text-danger">{{ errors.password }}</div>
             </div>
             
-            <div class="col-md-6 col-sm-6">
+            <div class="col-12 col-md-6">
               <label for="confirm-password" class="form-label">Confirm Password</label>
               <input 
                 type="password"
@@ -56,7 +56,7 @@
             </div>
           </div>
 
-          <div class="col-md">
+          <div class="col-12">
             <label for="staffCode" class="form-label">Staff Code (optional)</label>
             <input
               type="text"
@@ -66,8 +66,10 @@
             />
           </div>
 
-          <div class="text-center pt-3">
-            <button type="submit" class="btn btn-primary me-2">Submit</button>
+          <div class="d-grid mt-3">
+            <button type="submit" class="btn btn-primary">Submit</button>
+          </div>
+          <div class="d-grid mt-3">
             <button type="button" class="btn btn-secondary" @click="clearForm">Clear</button>
           </div>
         </form>
@@ -75,20 +77,10 @@
     </div>
   </div>
 
-  <div class="row mt-5">
-    <DataTable :value="submittedCards" table-style="min-width: 50rem">
-      <Column field="username" header="Username"></Column>
-      <Column field="password" header="Password"></Column>
-      <Column field="gender" header="Gender"></Column>
-      <Column field="staffCode" header="Staff Code"></Column>
-    </DataTable>
-  </div>
 </template>
   
 <script setup>
 import { ref } from 'vue'
-import DataTable from 'primevue/datatable'
-import Column from 'primevue/column'
 
 const formData = ref({
   username: '',
