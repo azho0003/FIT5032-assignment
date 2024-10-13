@@ -4,6 +4,7 @@ import AboutView from '../views/AboutView.vue'
 import FirebaseLoginView from '../views/FirebaseLoginView.vue'
 import FirebaseRegisterView from '../views/FirebaseRegisterView.vue'
 import SendEmailView from '../views/SendEmailView.vue'
+import DataTableView from '../views/DataTableView.vue'
 
 const routes = [
   {
@@ -30,6 +31,11 @@ const routes = [
     path: '/email',
     name: 'Email',
     component: SendEmailView
+  },
+  {
+    path: '/data',
+    name: 'DataTable',
+    component: DataTableView
   }
 ]
 

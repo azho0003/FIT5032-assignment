@@ -26,6 +26,7 @@
     "multer": "^1.4.5-lts.1",
     "primevue": "^4.0.5",
     "vue": "^3.4.29",
+    "vue-good-table-next": "^0.2.2",
     "vue-router": "^4.4.3"
   },
   "devDependencies": {

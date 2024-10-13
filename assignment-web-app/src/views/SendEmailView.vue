@@ -67,10 +67,6 @@ import axios from 'axios';
 import sendGridMail from '@sendgrid/mail';
 import dotenv from 'dotenv';
 
-// Load environment variables from .env file
-dotenv.config();
-
-sendGridMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 export default {
   name: 'SendEmailView',

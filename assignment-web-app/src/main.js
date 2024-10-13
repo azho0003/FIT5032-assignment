@@ -8,7 +8,8 @@ import 'bootstrap/dist/css/bootstrap.css'
 import 'bootstrap/dist/js/bootstrap.bundle.js'
 import PrimeVue from 'primevue/config'
 import Aura from '@primevue/themes/aura'
-import { initializeApp } from "firebase/app";
+import { initializeApp } from "firebase/app"
+import 'vue-good-table-next/dist/vue-good-table-next.css'
 
 // Firebase Config
 const firebaseConfig = {
