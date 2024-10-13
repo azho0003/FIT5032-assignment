@@ -67,7 +67,7 @@ const authenticate = async (req, res, next) => {
 
 // API endpoint to send email
 app.post(
-  '/api/send-email',
+  'http://localhost:3000/api/send-email',
   authenticate,
   upload.single('attachment'),
   async (req, res) => {
