@@ -21,7 +21,6 @@ exports.sendEmail = functions.https.onRequest((req, res) => {
 
     const {to, from, subject, html, attachments} = req.body;
 
-    // Basic Validation
     if (!to || !from || !subject || !html) {
       return res.status(400).send({error: "Missing required fields."});
     }
@@ -77,7 +76,7 @@ exports.mapboxSearch = functions.https.onRequest(async (req, res) => {
     try {
       const response = await axios.get(endpoint);
       const features = response.data.features.map((feature) => ({
-        place_name: feature.place_name,
+        placeName: feature.place_name,
         coordinates: feature.geometry.coordinates,
       }));
       return res.status(200).send({results: features});
@@ -115,7 +114,6 @@ exports.mapboxDirections = functions.https.onRequest(async (req, res) => {
         distance: route.distance,
         duration: route.duration,
         geometry: route.geometry,
-        legs: route.legs,
       }));
       return res.status(200).send({routes});
     } catch (error) {

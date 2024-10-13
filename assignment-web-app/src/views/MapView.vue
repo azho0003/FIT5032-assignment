@@ -110,7 +110,7 @@ export default {
 
             this.markers.push(marker);
 
-            // Set start and end points based on existing selection
+            // Set start and end points
             if (!this.startPoint) {
                 this.startPoint = coordinates;
                 marker.getPopup().setText('Start Point');
@@ -193,7 +193,7 @@ export default {
                 geometry: this.route.geometry,
             };
 
-            // Remove existing route layer if present
+            // Remove existing route
             if (this.map.getLayer('route')) {
                 this.map.removeLayer('route');
                 this.map.removeSource('route');
@@ -226,7 +226,7 @@ export default {
             }
         } catch (error) {
             console.error('Directions error:', error.response ? error.response.data : error.message);
-            alert('Failed to get directions. Please try again.');
+            alert('Failed to get route. Please try again.');
         }
         },
     },
