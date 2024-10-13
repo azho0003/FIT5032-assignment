@@ -13,6 +13,7 @@
             <li class="nav-item"><router-link to="/register" class="nav-link" active-class="active">Register</router-link></li>
             <li class="nav-item"><router-link to="/email" class="nav-link" active-class="active">Email</router-link></li>
             <li class="nav-item"><router-link to="/data" class="nav-link" active-class="active">Data</router-link></li>
+            <li class="nav-item"><router-link to="/map" class="nav-link" active-class="active">Map</router-link></li>
           </ul>
         </div>
       </div>

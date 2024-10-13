@@ -1,16 +1,8 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * const {onCall} = require("firebase-functions/v2/https");
- * const {onDocumentWritten} = require("firebase-functions/v2/firestore");
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
 const functions = require("firebase-functions");
 const admin = require("firebase-admin");
 const sgMail = require("@sendgrid/mail");
 const cors = require("cors")({origin: true});
+const axios = require("axios");
 
 const SENDGRID_API_KEY = functions.config().sendgrid.key;
 sgMail.setApiKey(SENDGRID_API_KEY);
@@ -19,7 +11,6 @@ admin.initializeApp();
 
 /**
  * Cloud Function to send emails using SendGrid.
- * Triggered via HTTPS POST request.
  */
 exports.sendEmail = functions.https.onRequest((req, res) => {
   // Handle CORS
@@ -60,6 +51,77 @@ exports.sendEmail = functions.https.onRequest((req, res) => {
         error.response.body : error.message);
       return res.status(500).send({success: false,
         error: "Failed to send email."});
+    }
+  });
+});
+
+/**
+ * Cloud Function to search places using Mapbox Geocoding API.
+ */
+exports.mapboxSearch = functions.https.onRequest(async (req, res) => {
+  // Handle CORS
+  cors(req, res, async () => {
+    if (req.method !== "GET") {
+      return res.status(405).send({error: "Method Not Allowed"});
+    }
+
+    const query = req.query.query;
+
+    if (!query) {
+      return res.status(400).send({error: "Missing query parameter."});
+    }
+
+    const MAPBOX_TOKEN = functions.config().mapbox.token;
+    const endpoint = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json?access_token=${MAPBOX_TOKEN}&autocomplete=true&limit=5`;
+
+    try {
+      const response = await axios.get(endpoint);
+      const features = response.data.features.map((feature) => ({
+        place_name: feature.place_name,
+        coordinates: feature.geometry.coordinates,
+      }));
+      return res.status(200).send({results: features});
+    } catch (error) {
+      console.error("Error fetching geocoding data:", error.response ?
+        error.response.data : error.message);
+      return res.status(500).send({error: "Failed to fetch geocoding data."});
+    }
+  });
+});
+
+/**
+ * Cloud Function to get directions using Mapbox Directions API.
+ */
+exports.mapboxDirections = functions.https.onRequest(async (req, res) => {
+  // Handle CORS
+  cors(req, res, async () => {
+    if (req.method !== "GET") {
+      return res.status(405).send({error: "Method Not Allowed"});
+    }
+
+    const {start, end} = req.query;
+
+    if (!start || !end) {
+      return res.status(400)
+          .send({error: "Missing start or end parameters."});
+    }
+
+    const MAPBOX_TOKEN = functions.config().mapbox.token;
+    const endpoint = `https://api.mapbox.com/directions/v5/mapbox/driving/${start};${end}?geometries=geojson&access_token=${MAPBOX_TOKEN}&steps=true`;
+
+    try {
+      const response = await axios.get(endpoint);
+      const routes = response.data.routes.map((route) => ({
+        distance: route.distance,
+        duration: route.duration,
+        geometry: route.geometry,
+        legs: route.legs,
+      }));
+      return res.status(200).send({routes});
+    } catch (error) {
+      console.error("Error fetching directions data:",
+        error.response ? error.response.data : error.message);
+      return res.status(500).send({error: "Failed to fetch directions data."});
     }
   });
 });
