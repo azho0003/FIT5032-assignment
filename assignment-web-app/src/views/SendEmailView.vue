@@ -92,7 +92,7 @@ export default {
       };
 
       try {
-        const response = await axios.post('/api/send-email', payload);
+        const response = await axios.post('http://localhost:3000/api/send-email', payload);
         if (response.data.success) {
           this.success = true;
           this.email = {

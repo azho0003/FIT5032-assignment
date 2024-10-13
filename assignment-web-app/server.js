@@ -9,15 +9,21 @@ dotenv.config()
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
-app.use(cors());
-app.use(bodyParser.json({ limit: '10mb' })); // Increase limit if sending large attachments
+// Configure cors
+const corsOptions = {
+  origin: 'https://fit5032-assignment-4co.pages.dev/email', 
+  optionsSuccessStatus: 200,
+};
+app.use(cors(corsOptions));
+app.use(bodyParser.json({ limit: '10mb' }));
 
 // Set SendGrid API Key
 sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
 // API Endpoint to send email
 app.post('/api/send-email', async (req, res) => {
+  console.log('Received POST /api/send-email');
+  console.log('Request Body:', req.body);
   const { to, from, subject, html, attachments } = req.body;
 
   if (!to || !from || !subject || !html) {
