@@ -64,6 +64,13 @@
 import { ref } from 'vue';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import axios from 'axios';
+import sendGridMail from '@sendgrid/mail';
+import dotenv from 'dotenv';
+
+// Load environment variables from .env file
+dotenv.config();
+
+sendGridMail.setApiKey(process.env.SENDGRID_API_KEY)
 
 export default {
   name: 'SendEmailView',
@@ -117,7 +124,7 @@ export default {
         // Optionally, include Firebase ID token for backend authentication
         const idToken = await auth.currentUser.getIdToken(true);
 
-        const response = await axios.post('/api/send-email', formData, {
+        const response = await axios.post('https://api.sendgrid.com/v3/mail/send', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
             Authorization: `Bearer ${idToken}`,

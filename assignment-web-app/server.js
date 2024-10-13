@@ -67,7 +67,7 @@ const authenticate = async (req, res, next) => {
 
 // API endpoint to send email
 app.post(
-  'http://localhost:3000/api/send-email',
+  'https://api.sendgrid.com/v3/mail/send',
   authenticate,
   upload.single('attachment'),
   async (req, res) => {
