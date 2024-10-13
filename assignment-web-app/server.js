@@ -1,171 +1,55 @@
 import express from 'express';
-import multer from 'multer';
-import sendGridMail from '@sendgrid/mail';
-import path from 'path';
-import fs from 'fs/promises';
+import sgMail from '@sendgrid/mail';
 import dotenv from 'dotenv';
 import cors from 'cors';
-import admin from './src/firebase/firebaseAdmin.js';
+import bodyParser from 'body-parser';
 
-// Load environment variables from .env file
-dotenv.config();
-
-sendGridMail.setApiKey(process.env.SENDGRID_API_KEY);
+dotenv.config()
 
 const app = express();
-app.use(express.json());
+const PORT = process.env.PORT || 3000;
 
-app.use(
-  cors({
-    origin: process.env.FRONTEND_ORIGIN, // Allow requests from the frontend origin
-    methods: ['GET', 'POST'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-  })
-);
+// Middleware
+app.use(cors());
+app.use(bodyParser.json({ limit: '10mb' })); // Increase limit if sending large attachments
 
-// Setup Multer for handling file uploads
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadPath = path.join(process.cwd(), 'uploads');
-    fs.mkdir(uploadPath, { recursive: true })
-      .then(() => cb(null, uploadPath))
-      .catch((err) => cb(err));
-  },
-  filename: (req, file, cb) => {
-    const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-    const sanitizedFilename = file.originalname.replace(/\s+/g, '_');
-    cb(null, `${file.fieldname}-${uniqueSuffix}-${sanitizedFilename}`);
-  },
-});
+// Set SendGrid API Key
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const upload = multer({ storage });
+// API Endpoint to send email
+app.post('/api/send-email', async (req, res) => {
+  const { to, from, subject, html, attachments } = req.body;
 
-const authenticate = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-
-  if (
-    !authHeader ||
-    !authHeader.startsWith('Bearer ') ||
-    authHeader.split(' ').length !== 2
-  ) {
-    return res
-      .status(401)
-      .json({ message: 'Unauthorized: Missing or invalid token.' });
+  if (!to || !from || !subject || !html) {
+    return res.status(400).json({ success: false, message: 'Missing required fields.' });
   }
 
-  const idToken = authHeader.split(' ')[1];
+  const msg = {
+    to,
+    from,
+    subject,
+    html,
+    attachments: attachments
+      ? attachments.map((att) => ({
+          content: att.content,
+          filename: att.filename,
+          type: att.type,
+          disposition: att.disposition,
+          content_id: att.content_id,
+        }))
+      : [],
+  };
 
   try {
-    const decodedToken = await admin.auth().verifyIdToken(idToken);
-    req.user = decodedToken;
-    return next();
+    await sgMail.send(msg);
+    res.json({ success: true });
   } catch (error) {
-    console.error('Error verifying Firebase ID token:', error);
-    return res.status(401).json({ message: 'Unauthorized: Invalid token.' });
+    console.error('Error sending email:', error);
+    res.status(500).json({ success: false, message: 'Failed to send email.' });
   }
-};
-
-// API endpoint to send email
-app.post(
-  'https://api.sendgrid.com/v3/mail/send',
-  authenticate,
-  upload.single('attachment'),
-  async (req, res) => {
-    const { from, to, subject, message } = req.body;
-
-    // Validate required fields
-    if (!from || !to || !subject || !message) {
-      return res.status(400).json({
-        message:
-          'Bad Request: From, To, Subject, and Message fields are required.',
-      });
-    }
-
-    // Validate that the 'from' email matches the authenticated user's email
-    if (from !== req.user.email) {
-      return res.status(403).json({
-        message:
-          'Forbidden: The sender email does not match the authenticated user.',
-      });
-    }
-
-    // Construct the email object
-    const email = {
-      to,
-      from,
-      subject,
-      text: message,
-    };
-
-    // Handle attachment if present
-    if (req.file) {
-      try {
-        const filePath = path.join(process.cwd(), req.file.path);
-        const fileContent = await fs.readFile(filePath, { encoding: 'base64' });
-
-        email.attachments = [
-          {
-            content: fileContent,
-            filename: req.file.originalname,
-            type: req.file.mimetype,
-            disposition: 'attachment',
-          },
-        ];
-      } catch (error) {
-        console.error('Error processing attachment:', error);
-        return res.status(500).json({
-          message: 'Internal Server Error: Failed to process attachment.',
-        });
-      }
-    }
-
-    try {
-      await sendGridMail.send(email);
-
-      // Delete the uploaded file after sending the email
-      if (req.file) {
-        const filePath = path.join(process.cwd(), req.file.path);
-        try {
-          await fs.unlink(filePath);
-        } catch (err) {
-          console.error('Error deleting uploaded file:', err);
-          // Continue without failing the request
-        }
-      }
-
-      return res
-        .status(200)
-        .json({ success: true, message: 'Email sent successfully.' });
-    } catch (error) {
-      console.error(
-        'Error sending email via SendGrid:',
-        error.response?.body || error.message
-      );
-      return res.status(500).json({
-        success: false,
-        message: 'Internal Server Error: Failed to send email.',
-      });
-    }
-  }
-);
-
-// Handle undefined routes
-app.use((req, res) => {
-  res.status(404).json({
-    message: 'Not Found: The requested endpoint does not exist.',
-  });
-});
-
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error('Unhandled error:', err);
-  res
-    .status(500)
-    .json({ message: 'Internal Server Error: An unexpected error occurred.' });
 });
 
 // Start the server
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

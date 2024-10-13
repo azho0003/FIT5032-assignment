@@ -1,48 +1,30 @@
 <template>
   <div class="container mt-5">
-    <h2>Send Email</h2>
-    <form @submit.prevent="sendEmail" enctype="multipart/form-data">
-      <div class="row mb-3">
-        <label for="toEmail" class="form-label">To</label>
-        <input
-          type="email"
-          class="form-control"
-          id="toEmail"
-          v-model="emailData.to"
-          required
-        />
+    <h2>Send an Email</h2>
+    <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
+      <div class="mb-3">
+        <label for="to" class="form-label">To</label>
+        <input type="email" class="form-control" id="to" v-model="email.to" required />
       </div>
 
-      <div class="row mb-3">
+      <div class="mb-3">
+        <label for="from" class="form-label">From</label>
+        <input type="email" class="form-control" id="from" v-model="email.from" required />
+      </div>
+
+      <div class="mb-3">
         <label for="subject" class="form-label">Subject</label>
-        <input
-          type="text"
-          class="form-control"
-          id="subject"
-          v-model="emailData.subject"
-          required
-        />
+        <input type="text" class="form-control" id="subject" v-model="email.subject" required />
       </div>
 
-      <div class="row mb-3">
-        <label for="message" class="form-label">Message</label>
-        <textarea
-          class="form-control"
-          id="message"
-          rows="5"
-          v-model="emailData.message"
-          required
-        ></textarea>
+      <div class="mb-3">
+        <label for="html" class="form-label">Message</label>
+        <textarea class="form-control" id="html" v-model="email.html" rows="5" required></textarea>
       </div>
 
-      <div class="row mb-3">
+      <div class="mb-3">
         <label for="attachment" class="form-label">Attachment</label>
-        <input
-          class="form-control"
-          type="file"
-          id="attachment"
-          @change="handleFileUpload"
-        />
+        <input class="form-control" type="file" id="attachment" @change="handleFileUpload" />
       </div>
 
       <button type="submit" class="btn btn-primary" :disabled="loading">
@@ -61,98 +43,75 @@
 </template>
 
 <script>
-import { ref } from 'vue';
-import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import axios from 'axios';
-import sendGridMail from '@sendgrid/mail';
-import dotenv from 'dotenv';
-
 
 export default {
   name: 'SendEmailView',
-  setup() {
-    const auth = getAuth();
-    const userEmail = ref('');
-    const loading = ref(false);
-    const success = ref(false);
-    const error = ref('');
-    const emailData = ref({
-      to: '',
-      subject: '',
-      message: '',
-    });
-    const attachment = ref(null);
-
-    // Get the currently logged in user's email
-    onAuthStateChanged(auth, (user) => {
-      if (user) {
-        userEmail.value = user.email;
-      } else {
-        // Handle unauthenticated state if necessary
-        userEmail.value = '';
-      }
-    });
-
-    const handleFileUpload = (event) => {
-      attachment.value = event.target.files[0];
+  data() {
+    return {
+      email: {
+        to: '',
+        from: '',
+        subject: '',
+        html: '',
+      },
+      attachment: null,
+      loading: false,
+      success: false,
+      error: '',
     };
-
-    const sendEmail = async () => {
-      if (!userEmail.value) {
-        error.value = 'User is not authenticated.';
-        return;
+  },
+  methods: {
+    handleFileUpload(event) {
+      const file = event.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          // Remove the prefix "data:*/*;base64," to get pure base64
+          const base64Content = e.target.result.split(',')[1];
+          this.attachment = {
+            content: base64Content,
+            filename: file.name,
+            type: file.type,
+            disposition: 'attachment',
+            content_id: 'attachment1',
+          };
+        };
+        reader.readAsDataURL(file);
       }
+    },
+    async handleSubmit() {
+      this.loading = true;
+      this.success = false;
+      this.error = '';
 
-      loading.value = true;
-      success.value = false;
-      error.value = '';
+      // Prepare the payload
+      const payload = {
+        ...this.email,
+        attachments: this.attachment ? [this.attachment] : [],
+      };
 
       try {
-        const formData = new FormData();
-        formData.append('from', userEmail.value);
-        formData.append('to', emailData.value.to);
-        formData.append('subject', emailData.value.subject);
-        formData.append('message', emailData.value.message);
-        if (attachment.value) {
-          formData.append('attachment', attachment.value);
-        }
-
-        // Optionally, include Firebase ID token for backend authentication
-        const idToken = await auth.currentUser.getIdToken(true);
-
-        const response = await axios.post('https://api.sendgrid.com/v3/mail/send', formData, {
-          headers: {
-            'Content-Type': 'multipart/form-data',
-            Authorization: `Bearer ${idToken}`,
-          },
-        });
-
+        const response = await axios.post('/api/send-email', payload);
         if (response.data.success) {
-          success.value = true;
-          emailData.value = { to: '', subject: '', message: '' };
-          attachment.value = null;
-          // Reset file input
-          document.getElementById('attachment').value = '';
+          this.success = true;
+          this.email = {
+            to: '',
+            from: '',
+            subject: '',
+            html: '',
+          };
+          this.attachment = null;
+          this.$refs.attachment.value = ''; // Reset file input
         } else {
-          error.value = response.data.message || 'Failed to send email.';
+          this.error = response.data.message || 'Failed to send email.';
         }
       } catch (err) {
-        console.error(err);
-        error.value =
-          err.response?.data?.message || 'An error occurred while sending email.';
+        this.error = err.response?.data?.message || 'An error occurred.';
       } finally {
-        loading.value = false;
+        this.loading = false;
       }
-    };
-
-    return {
-      emailData,
-      sendEmail,
-      handleFileUpload,
-      loading,
-      success,
-      error,
-    };
+    },
   },
 };
 </script>
