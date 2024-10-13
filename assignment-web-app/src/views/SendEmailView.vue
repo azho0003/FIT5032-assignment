@@ -44,6 +44,7 @@
 
 <script>
 import axios from 'axios';
+import { getAuth } from 'firebase/auth';
 
 export default {
   name: 'SendEmailView',
@@ -67,7 +68,6 @@ export default {
       if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-          // Remove the prefix "data:*/*;base64," to get pure base64
           const base64Content = e.target.result.split(',')[1];
           this.attachment = {
             content: base64Content,
@@ -85,14 +85,29 @@ export default {
       this.success = false;
       this.error = '';
 
-      // Prepare the payload
       const payload = {
         ...this.email,
         attachments: this.attachment ? [this.attachment] : [],
       };
 
       try {
-        const response = await axios.post('http://localhost:3000/api/send-email', payload);
+        // check if user is logged on
+        const auth = getAuth();
+        const user = auth.currentUser;
+        if (!user) {
+          throw new Error('User not authenticated.');
+        }
+
+        const idToken = await user.getIdToken();
+
+        const cloudFunctionURL = 'https://us-central1-azho0003-5032.cloudfunctions.net/sendEmail';
+
+        const response = await axios.post(cloudFunctionURL, payload, {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        });
+
         if (response.data.success) {
           this.success = true;
           this.email = {
@@ -102,12 +117,12 @@ export default {
             html: '',
           };
           this.attachment = null;
-          this.$refs.attachment.value = ''; // Reset file input
+          this.$refs.attachment.value = '';
         } else {
-          this.error = response.data.message || 'Failed to send email.';
+          this.error = response.data.error || 'Failed to send email.';
         }
       } catch (err) {
-        this.error = err.response?.data?.message || 'An error occurred.';
+        this.error = err.response?.data?.error || err.message || 'An error occurred.';
       } finally {
         this.loading = false;
       }
