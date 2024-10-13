@@ -3,8 +3,8 @@
     <h2>Send an Email</h2>
     <form @submit.prevent="handleSubmit" enctype="multipart/form-data">
       <div class="mb-3">
-        <label for="to" class="form-label">To</label>
-        <input type="email" class="form-control" id="to" v-model="email.to" required />
+        <label for="to" class="form-label">To (seperate multiple emails with commas)</label>
+        <input type="text" class="form-control" id="to" v-model="email.to" required />
       </div>
 
       <div class="mb-3">
@@ -85,9 +85,28 @@ export default {
       this.success = false;
       this.error = '';
 
+      // Split the 'to' field by commas and trim whitespace
+      const recipientsArray = this.email.to
+        .split(',')
+        .map(email => email.trim())
+        .filter(email => email.length > 0);
+
+      // Validate email addresses
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const invalidEmails = recipientsArray.filter(email => !emailRegex.test(email));
+
+      if (invalidEmails.length > 0) {
+        this.error = `Invalid email addresses: ${invalidEmails.join(', ')}`;
+        this.loading = false;
+        return;
+      }
+
       const payload = {
-        ...this.email,
-        attachments: this.attachment ? [this.attachment] : [],
+        to: recipientsArray, // Now an array
+        from: this.email.from,
+        subject: this.email.subject,
+        html: this.email.html,
+        attachments: this.attachment ? [this.attachment] : []
       };
 
       try {
