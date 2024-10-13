@@ -114,9 +114,13 @@ export default {
           formData.append('attachment', attachment.value);
         }
 
+        // Optionally, include Firebase ID token for backend authentication
+        const idToken = await auth.currentUser.getIdToken(true);
+
         const response = await axios.post('/api/send-email', formData, {
           headers: {
-            'Content-Type': 'multipart/form-data'
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${idToken}`,
           },
         });
 
