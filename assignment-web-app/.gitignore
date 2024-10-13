@@ -27,4 +27,11 @@ coverage
 *.sln
 *.sw?
 
+
 *.tsbuildinfo
+
+# .gitignore
+node_modules/
+.env
+uploads/
+src/firebase/serviceAccountKey.json

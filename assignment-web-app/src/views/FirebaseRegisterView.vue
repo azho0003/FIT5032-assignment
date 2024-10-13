@@ -1,36 +1,31 @@
 <template>
-    <div class="container mt-3">
-        <div class="row">
-            <div class="col-12 col-md-6 offset-md-3">
-                <h1 class="text-center">Register</h1>
+  <div class="container mt-5">
+    <div class="row">
+      <h1 class="text-center">Register</h1>
 
-                <form @submit.prevent="submitForm">
-                    <div class="row mb-3">
-                        <div class="col-12 col-md-6">
-                        <label for="email" class="form-label">Email</label>
-                        <input type="email" id="email" class="form-control" v-model="email" required>
-                        </div>
-                        <div class="col-12 col-md-6">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" id="password" class="form-control" v-model="password" required>
-                        </div>
-                    </div>
+      <form @submit.prevent="submitForm">
+          <div class="row mb-3">
+            <label for="email" class="form-label">Email</label>
+            <input type="email" id="email" class="form-control" v-model="email" required>
+          </div>
 
-                    <div class="row mb-3">
-                        <div class="col-12 col-md-6">
-                        <label for="confirmPassword" class="form-label">Confirm Password</label>
-                        <input type="password" id="confirmPassword" class="form-control" v-model="confirmPassword" required>
-                        </div>
-                    </div>
+          <div class="row mb-3">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" id="password" class="form-control" v-model="password" required>
+          </div>
 
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-primary">Register</button>
-                    </div>
-                    <div v-if="errorMessage" class="text-danger mt-3">{{ errorMessage }}</div>
-                </form>
-            </div>
-        </div>
+          <div class="row mb-3">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <input type="password" id="confirmPassword" class="form-control" v-model="confirmPassword" required>
+          </div>
+
+          <div class="d-grid">
+              <button type="submit" class="btn btn-primary">Register</button>
+          </div>
+          <div v-if="errorMessage" class="text-danger mt-3">{{ errorMessage }}</div>
+      </form>
     </div>
+  </div>
 </template>
 
 <script setup>

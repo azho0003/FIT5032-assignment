@@ -1,75 +1,152 @@
 <template>
-    <div class="container mt-3">
-      <div class="row">
-        <div class="col-12 col-md-8 offset-md-2">
-          <h1 class="text-center">Send Email</h1>
-
-          <form @submit.prevent="submitEmailForm">
-            <div class="mb-3">
-              <label for="email" class="form-label">Recipient Email Address</label>
-              <input type="email" id="email" class="form-control" v-model="email" required>
-            </div>
-            <div class="mb-3">
-              <label for="subject" class="form-label">Subject</label>
-              <input type="text" id="subject" class="form-control" v-model="subject" required>
-            </div>
-            <div class="mb-3">
-              <label for="message" class="form-label">Message</label>
-              <textarea id="message" class="form-control" rows="4" v-model="message" required></textarea>
-            </div>
-            <div class="mb-3">
-              <label for="attachment" class="form-label">Attachment</label>
-              <input type="file" id="attachment" class="form-control" @change="handleFileUpload">
-            </div>
-            <div class="d-grid">
-              <button type="submit" class="btn btn-primary">Send Email</button>
-            </div>
-            <div v-if="successMessage" class="text-success mt-3">{{ successMessage }}</div>
-            <div v-if="errorMessage" class="text-danger mt-3">{{ errorMessage }}</div>
-          </form>
-        </div>
+  <div class="container mt-5">
+    <h2>Send Email</h2>
+    <form @submit.prevent="sendEmail" enctype="multipart/form-data">
+      <div class="row mb-3">
+        <label for="toEmail" class="form-label">To</label>
+        <input
+          type="email"
+          class="form-control"
+          id="toEmail"
+          v-model="emailData.to"
+          required
+        />
       </div>
-    </div>
-  </template>
-  
-  <script setup>
-  import { ref } from 'vue'
-  
-  const email = ref('')
-  const subject = ref('')
-  const message = ref('')
-  const attachment = ref(null)
-  const successMessage = ref('')
-  const errorMessage = ref('')
-  
-  const handleFileUpload = (event) => {
-    attachment.value = event.target.files[0]
-  }
-  
-  const submitEmailForm = async () => {
-    const formData = new FormData()
-    formData.append('email', email.value)
-    formData.append('subject', subject.value)
-    formData.append('message', message.value)
-    if (attachment.value) {
-      formData.append('attachment', attachment.value)
-    }
-  
-    try {
-      const response = await fetch('http://localhost:3000/api/send-email', {
-        method: 'POST',
-        body: formData,
-      })
-      const result = await response.json()
-      if (response.ok) {
-        successMessage.value = 'Email sent successfully!'
-        errorMessage.value = ''
+
+      <div class="row mb-3">
+        <label for="subject" class="form-label">Subject</label>
+        <input
+          type="text"
+          class="form-control"
+          id="subject"
+          v-model="emailData.subject"
+          required
+        />
+      </div>
+
+      <div class="row mb-3">
+        <label for="message" class="form-label">Message</label>
+        <textarea
+          class="form-control"
+          id="message"
+          rows="5"
+          v-model="emailData.message"
+          required
+        ></textarea>
+      </div>
+
+      <div class="row mb-3">
+        <label for="attachment" class="form-label">Attachment</label>
+        <input
+          class="form-control"
+          type="file"
+          id="attachment"
+          @change="handleFileUpload"
+        />
+      </div>
+
+      <button type="submit" class="btn btn-primary" :disabled="loading">
+        {{ loading ? 'Sending...' : 'Send Email' }}
+      </button>
+
+      <div v-if="success" class="alert alert-success mt-3" role="alert">
+        Email sent successfully!
+      </div>
+
+      <div v-if="error" class="alert alert-danger mt-3" role="alert">
+        {{ error }}
+      </div>
+    </form>
+  </div>
+</template>
+
+<script>
+import { ref } from 'vue';
+import { getAuth, onAuthStateChanged } from 'firebase/auth';
+import axios from 'axios';
+
+export default {
+  name: 'SendEmailView',
+  setup() {
+    const auth = getAuth();
+    const userEmail = ref('');
+    const loading = ref(false);
+    const success = ref(false);
+    const error = ref('');
+    const emailData = ref({
+      to: '',
+      subject: '',
+      message: '',
+    });
+    const attachment = ref(null);
+
+    // Get the currently logged in user's email
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userEmail.value = user.email;
       } else {
-        throw new Error(result.message || 'Failed to send email')
+        // Handle unauthenticated state if necessary
+        userEmail.value = '';
       }
-    } catch (error) {
-      errorMessage.value = error.message
-      successMessage.value = ''
-    }
-  }
-  </script>
+    });
+
+    const handleFileUpload = (event) => {
+      attachment.value = event.target.files[0];
+    };
+
+    const sendEmail = async () => {
+      if (!userEmail.value) {
+        error.value = 'User is not authenticated.';
+        return;
+      }
+
+      loading.value = true;
+      success.value = false;
+      error.value = '';
+
+      try {
+        const formData = new FormData();
+        formData.append('from', userEmail.value);
+        formData.append('to', emailData.value.to);
+        formData.append('subject', emailData.value.subject);
+        formData.append('message', emailData.value.message);
+        if (attachment.value) {
+          formData.append('attachment', attachment.value);
+        }
+
+        const response = await axios.post('/api/send-email', formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data'
+          },
+        });
+
+        if (response.data.success) {
+          success.value = true;
+          emailData.value = { to: '', subject: '', message: '' };
+          attachment.value = null;
+          // Reset file input
+          document.getElementById('attachment').value = '';
+        } else {
+          error.value = response.data.message || 'Failed to send email.';
+        }
+      } catch (err) {
+        console.error(err);
+        error.value =
+          err.response?.data?.message || 'An error occurred while sending email.';
+      } finally {
+        loading.value = false;
+      }
+    };
+
+    return {
+      emailData,
+      sendEmail,
+      handleFileUpload,
+      loading,
+      success,
+      error,
+    };
+  },
+};
+</script>
+
